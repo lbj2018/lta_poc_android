@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">LTA</string>
+    <string name="reset_button">Reset</string>
+    <string name="title_activity_main">LTA</string>
+    <string name="title_button_rate_template">Rate Template</string>
+    <string name="title_button_charging_point">Charging Point</string>
+    <string name="title_activity_charging_point">ChargingPointActivity</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+
+</resources>
