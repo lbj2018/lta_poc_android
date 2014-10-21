@@ -2,8 +2,11 @@ package com.derek.ltapoc;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.IntentFilter;
@@ -14,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.derek.ltapoc.EditChargingPointDialogFragment.EditChargingPointDialogFragmentCallbacks;
 import com.derek.ltapoc.location.LTALocationManager;
 import com.derek.ltapoc.location.LocationReceiver;
 import com.derek.ltapoc.model.ChargingPoint;
@@ -22,27 +26,32 @@ import com.derek.ltapoc.model.LTADataStore;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnInfoWindowClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMapLongClickListener;
-import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class ChargingPointMapFragment extends MapFragment {
+public class ChargingPointMapFragment extends MapFragment implements EditChargingPointDialogFragmentCallbacks {
 
 	private GoogleMap mGoogleMap;
 	private Location mLastLocation;
 	private boolean mIsFirstGetLocation = true;
 	// private Marker mCurrentLocationMarker;
-	private ArrayList<Marker> mChargingPointMarkers;
+	// private ArrayList<Marker> mChargingPointMarkers;
 	private ArrayList<ChargingPoint> mChargingPoints;
+	private HashMap<String, Marker> mChargingPointMarkers;
+	private ProgressDialog mProgressDialog;
 
 	private BroadcastReceiver mLocationReceiver = new LocationReceiver() {
 		@Override
 		protected void onLocationReceived(Context context, Location loc) {
 			mLastLocation = loc;
 			if (isVisible()) {
+				if (mProgressDialog.isShowing()) {
+					mProgressDialog.dismiss();
+				}
 				updateUI();
 			}
 		}
@@ -58,7 +67,7 @@ public class ChargingPointMapFragment extends MapFragment {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		mChargingPointMarkers = new ArrayList<Marker>();
+		mChargingPointMarkers = new HashMap<String, Marker>();
 
 		ChargingPointDataSource dataSource = new ChargingPointDataSource(getActivity());
 		dataSource.open();
@@ -83,8 +92,8 @@ public class ChargingPointMapFragment extends MapFragment {
 			for (ChargingPoint aPoint : mChargingPoints) {
 				LatLng latlng = new LatLng(aPoint.getLatitude(), aPoint.getLongitude());
 				Marker chargingPointMarker = mGoogleMap.addMarker(new MarkerOptions().position(latlng).title(
-						aPoint.getChargingPointId()));
-				mChargingPointMarkers.add(chargingPointMarker);
+						aPoint.getRoadName()));
+				mChargingPointMarkers.put(aPoint.getChargingPointId(), chargingPointMarker);
 			}
 		}
 
@@ -100,36 +109,65 @@ public class ChargingPointMapFragment extends MapFragment {
 				chargingPoint.setRateTemplateId("");
 				chargingPoint.setEffectiveDate(new Date());
 
-				// save into database
-				ChargingPointDataSource dataSource = new ChargingPointDataSource(getActivity());
-				dataSource.open();
-				dataSource.createChargingPoint(chargingPoint);
-				dataSource.close();
-
-				LTADataStore.get().getChargingPoints().add(chargingPoint);
-
-				Marker chargingPointMarker = mGoogleMap.addMarker(new MarkerOptions().position(latlng).title(
-						chargingPoint.getChargingPointId()));
-				mChargingPointMarkers.add(chargingPointMarker);
-
-				Toast.makeText(getActivity(), "Latitude: " + latlng.latitude + " Longitude: " + latlng.longitude,
-						Toast.LENGTH_SHORT).show();
+				EditChargingPointDialogFragment dialogFragment = new EditChargingPointDialogFragment();
+				dialogFragment.setCallbacks(ChargingPointMapFragment.this);
+				dialogFragment.setChargingPoint(chargingPoint);
+				dialogFragment.show(getActivity().getFragmentManager(), "EditChargingPointDialogFragment");
 			}
 		});
 
-		mGoogleMap.setOnMarkerClickListener(new OnMarkerClickListener() {
+		// mGoogleMap.setOnMarkerClickListener(new OnMarkerClickListener() {
+		//
+		// @Override
+		// public boolean onMarkerClick(Marker marker) {
+		// String chargingPointId = marker.getTitle();
+		//
+		// for (Map.Entry<String, Marker> entry :
+		// mChargingPointMarkers.entrySet()) {
+		// Marker aMarker = entry.getValue();
+		// if (aMarker.equals(marker)) {
+		// chargingPointId = entry.getKey();
+		// break;
+		// }
+		// }
+		//
+		// ChargingPoint chargingPoint =
+		// LTADataStore.get().getChargingPoint(chargingPointId);
+		//
+		// EditChargingPointDialogFragment dialogFragment = new
+		// EditChargingPointDialogFragment();
+		// dialogFragment.setCallbacks(ChargingPointMapFragment.this);
+		// dialogFragment.setChargingPoint(chargingPoint);
+		// dialogFragment.show(getActivity().getFragmentManager(),
+		// "EditChargingPointDialogFragment");
+		//
+		// return true;
+		//
+		// }
+		// });
+
+		mGoogleMap.setOnInfoWindowClickListener(new OnInfoWindowClickListener() {
 
 			@Override
-			public boolean onMarkerClick(Marker marker) {
-				String chargingPointId = marker.getTitle();
+			public void onInfoWindowClick(Marker marker) {
+				String chargingPointId = null;
 
-				EditChargingPointDialogFragment dialogFragment = new EditChargingPointDialogFragment();
-				Bundle arguments = new Bundle();
-				arguments.putString(EditChargingPointDialogFragment.CHARGING_POINT_ID, chargingPointId);
-				dialogFragment.setArguments(arguments);
-				dialogFragment.show(getActivity().getFragmentManager(), "EditChargingPointDialogFragment");
+				for (Map.Entry<String, Marker> entry : mChargingPointMarkers.entrySet()) {
+					Marker aMarker = entry.getValue();
+					if (aMarker.equals(marker)) {
+						chargingPointId = entry.getKey();
+						break;
+					}
+				}
 
-				return true;
+				ChargingPoint chargingPoint = LTADataStore.get().getChargingPoint(chargingPointId);
+
+				if (chargingPoint != null) {
+					EditChargingPointDialogFragment dialogFragment = new EditChargingPointDialogFragment();
+					dialogFragment.setCallbacks(ChargingPointMapFragment.this);
+					dialogFragment.setChargingPoint(chargingPoint);
+					dialogFragment.show(getActivity().getFragmentManager(), "EditChargingPointDialogFragment");
+				}
 			}
 		});
 
@@ -141,6 +179,8 @@ public class ChargingPointMapFragment extends MapFragment {
 	@Override
 	public void onStart() {
 		super.onStart();
+
+		mProgressDialog = ProgressDialog.show(getActivity(), "", "loading your location...");
 		getActivity().registerReceiver(mLocationReceiver, new IntentFilter(LTALocationManager.ACTION_LOCATION));
 	}
 
@@ -156,12 +196,6 @@ public class ChargingPointMapFragment extends MapFragment {
 		if (mLastLocation != null && mGoogleMap != null) {
 			LatLng latlng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
 
-			// if (mCurrentLocationMarker != null) {
-			// mCurrentLocationMarker.remove();
-			// }
-			// mCurrentLocationMarker = mGoogleMap.addMarker(new
-			// MarkerOptions().position(latlng).title("My Location"));
-
 			if (mIsFirstGetLocation) {
 				CameraUpdate center = CameraUpdateFactory.newLatLng(latlng);
 				CameraUpdate zoom = CameraUpdateFactory.zoomTo(14);
@@ -170,6 +204,41 @@ public class ChargingPointMapFragment extends MapFragment {
 
 				mIsFirstGetLocation = false;
 			}
+		}
+	}
+
+	@Override
+	public void onDidSaveChargingPoint(ChargingPoint point) {
+		// save into database
+		if (!LTADataStore.get().getChargingPoints().contains(point)) {
+			ChargingPointDataSource dataSource = new ChargingPointDataSource(getActivity());
+			dataSource.open();
+			dataSource.createChargingPoint(point);
+			dataSource.close();
+
+			LTADataStore.get().getChargingPoints().add(point);
+
+			LatLng latlng = new LatLng(point.getLatitude(), point.getLongitude());
+			Marker chargingPointMarker = mGoogleMap.addMarker(new MarkerOptions().position(latlng).title(
+					point.getRoadName()));
+
+			mChargingPointMarkers.put(point.getChargingPointId(), chargingPointMarker);
+			// mChargingPointMarkers.add(chargingPointMarker);
+
+			chargingPointMarker.showInfoWindow();
+		} else {
+			ChargingPointDataSource dataSource = new ChargingPointDataSource(getActivity());
+			dataSource.open();
+			dataSource.updateChargingPoint(point);
+			dataSource.close();
+		}
+	}
+
+	@Override
+	public void onDidCancelChargingPoint(ChargingPoint point) {
+		for (Map.Entry<String, Marker> entry : mChargingPointMarkers.entrySet()) {
+			Marker aMarker = entry.getValue();
+			aMarker.showInfoWindow();
 		}
 	}
 }

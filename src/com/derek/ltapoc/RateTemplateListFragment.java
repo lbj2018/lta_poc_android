@@ -15,12 +15,13 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.derek.ltapoc.DeleteRateTemplateDialogFragment.DeleteRateTemplateDialogFragmentCallbacks;
 import com.derek.ltapoc.model.DateFormatUtil;
 import com.derek.ltapoc.model.LTADataStore;
 import com.derek.ltapoc.model.RateTemplate;
 import com.derek.ltapoc.model.RateTemplateDataSource;
 
-public class RateTemplateListFragment extends Fragment {
+public class RateTemplateListFragment extends Fragment implements DeleteRateTemplateDialogFragmentCallbacks {
 	private TextView mCreateTemplateTextView;
 	private ListView mListView;
 	private ArrayList<RateTemplate> mRateTemplates;
@@ -29,14 +30,6 @@ public class RateTemplateListFragment extends Fragment {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		RateTemplateDataSource dataSource = new RateTemplateDataSource(getActivity());
-		dataSource.open();
-		ArrayList<RateTemplate> templates = dataSource.getAllRateTemplates();
-		dataSource.close();
-
-		if (templates != null) {
-			LTADataStore.get().setRateTemplates(templates);
-		}
 		mRateTemplates = LTADataStore.get().getRateTemplates();
 	}
 
@@ -58,6 +51,21 @@ public class RateTemplateListFragment extends Fragment {
 				Intent intent = new Intent(getActivity(), RateTemplateActivity.class);
 				intent.putExtra("rateTemplateId", template.getRateTemplateId());
 				startActivity(intent);
+			}
+		});
+
+		mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+
+			@Override
+			public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+				RateTemplate template = mRateTemplates.get(position);
+
+				DeleteRateTemplateDialogFragment dialogFragment = new DeleteRateTemplateDialogFragment();
+				dialogFragment.setRateTemplateId(template.getRateTemplateId());
+				dialogFragment.setCallbacks(RateTemplateListFragment.this);
+				dialogFragment.show(getFragmentManager(), "DeleteRateTemplateDialogFragment");
+
+				return true;
 			}
 		});
 
@@ -106,6 +114,23 @@ public class RateTemplateListFragment extends Fragment {
 			createdDateTextView.setText(dateString);
 
 			return convertView;
+		}
+	}
+
+	@Override
+	public void onDidDeleteRateTemplate(String rateTemplateId) {
+		RateTemplate template = LTADataStore.get().getRateTemplate(rateTemplateId);
+
+		if (template != null) {
+			RateTemplateDataSource dataSource = new RateTemplateDataSource(getActivity());
+			dataSource.open();
+			dataSource.deleteRateTemplate(template);
+			dataSource.close();
+
+			LTADataStore.get().getRateTemplates().remove(template);
+
+			RateTemplateAdapter adapter = (RateTemplateAdapter) mListView.getAdapter();
+			adapter.notifyDataSetChanged();
 		}
 	}
 }

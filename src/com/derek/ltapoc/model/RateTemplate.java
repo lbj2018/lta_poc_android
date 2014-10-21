@@ -39,4 +39,9 @@ public class RateTemplate {
 	public void setChargingRate(ChargingRate chargingRate) {
 		mChargingRate = chargingRate;
 	}
+
+	@Override
+	public String toString() {
+		return mChargingScheme.getSchemeName();
+	}
 }

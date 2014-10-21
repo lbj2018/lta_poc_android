@@ -91,4 +91,11 @@ public class ChargingPointDataSource {
 
 		return rowId > 0;
 	}
+
+	public boolean deleteChargingPoint(ChargingPoint chargingPoint) {
+		long rowId = database
+				.delete(LTASQLiteHelper.TABLE_CHARGING_POINT, LTASQLiteHelper.COLUMN_TABLE_CHARGING_POINT_ID + " = "
+						+ "'" + chargingPoint.getChargingPointId() + "'", null);
+		return rowId > 0;
+	}
 }

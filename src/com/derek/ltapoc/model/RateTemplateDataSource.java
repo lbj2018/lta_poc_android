@@ -216,4 +216,21 @@ public class RateTemplateDataSource {
 
 		return rowId > 0;
 	}
+
+	public boolean deleteRateTemplate(RateTemplate template) {
+		long rowId = database.delete(LTASQLiteHelper.TABLE_RATE_TEMPLATE, LTASQLiteHelper.COLUMN_TABLE_RATE_TEMPLATE_ID
+				+ " = " + "'" + template.getRateTemplateId() + "'", null);
+
+		if (rowId > 0) {
+			deleteChargingRecordsForRateTemplate(template.getRateTemplateId());
+		}
+
+		return rowId > 0;
+	}
+
+	private boolean deleteChargingRecordsForRateTemplate(String templateId) {
+		long rowId = database.delete(LTASQLiteHelper.TABLE_CHARGING_RECORD,
+				LTASQLiteHelper.COLUMN_TABLE_CHARGING_RECORD_RATE_TEMPLATE_ID + " = " + "'" + templateId + "'", null);
+		return rowId > 0;
+	}
 }
