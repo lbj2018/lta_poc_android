@@ -9,6 +9,7 @@ public class LTADataStore {
 	private static LTADataStore sLTADataStore;
 
 	private ArrayList<RateTemplate> mRateTemplates;
+	private ArrayList<ChargingPoint> mChargingPoints;
 
 	public static final int TIME_INTERVAL = 30; // for minutes
 	public static final int SHOULDERING_RATE_TIME_INTERVAL = 5; // for minutes
@@ -17,16 +18,9 @@ public class LTADataStore {
 	public static final int VERTICAL_COUNT = 6;
 	private Date mStartTime;
 
-	public ArrayList<RateTemplate> getRateTemplates() {
-		return mRateTemplates;
-	}
-
-	public void setRateTemplates(ArrayList<RateTemplate> rateTemplates) {
-		mRateTemplates = rateTemplates;
-	}
-
 	private LTADataStore() {
 		mRateTemplates = new ArrayList<RateTemplate>();
+		mChargingPoints = new ArrayList<ChargingPoint>();
 
 		Calendar calendar = Calendar.getInstance();
 		calendar.set(Calendar.HOUR_OF_DAY, 6);
@@ -107,11 +101,45 @@ public class LTADataStore {
 		return verticalTexts;
 	}
 
+	public ChargingPoint getChargingPoint(String chargingPointId) {
+		ChargingPoint chargingPoint = null;
+
+		if (chargingPointId != null) {
+			for (ChargingPoint aPoint : mChargingPoints) {
+				if (chargingPointId.equals(aPoint.getChargingPointId())) {
+					chargingPoint = aPoint;
+					break;
+				}
+			}
+		}
+
+		return chargingPoint;
+	}
+
+	/*
+	 * Getter and Setter
+	 */
 	public static float prevShoudleringRate(int value, int prevValue) {
 		return prevValue + (value - prevValue) / 2.0f;
 	}
 
 	public static float nextShoudleringRate(int value, int nextValue) {
 		return value - (value - nextValue) / 2.0f;
+	}
+
+	public ArrayList<RateTemplate> getRateTemplates() {
+		return mRateTemplates;
+	}
+
+	public void setRateTemplates(ArrayList<RateTemplate> rateTemplates) {
+		mRateTemplates = rateTemplates;
+	}
+
+	public ArrayList<ChargingPoint> getChargingPoints() {
+		return mChargingPoints;
+	}
+
+	public void setChargingPoints(ArrayList<ChargingPoint> chargingPoints) {
+		mChargingPoints = chargingPoints;
 	}
 }

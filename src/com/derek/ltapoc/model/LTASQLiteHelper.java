@@ -25,6 +25,14 @@ public class LTASQLiteHelper extends SQLiteOpenHelper {
 	public static final String COLUMN_TABLE_CHARGING_RECORD_NEXT_VALUE = "_next_value";
 	public static final String COLUMN_TABLE_CHARGING_RECORD_RATE_TEMPLATE_ID = "_rate_template_id";
 
+	public static final String TABLE_CHARGING_POINT = "charging_point";
+	public static final String COLUMN_TABLE_CHARGING_POINT_ID = "_id";
+	public static final String COLUMN_TABLE_CHARGING_POINT_LATITUDE = "_latitude";
+	public static final String COLUMN_TABLE_CHARGING_POINT_LONGITUDE = "_longitude";
+	public static final String COLUMN_TABLE_CHARGING_POINT_ROAD_NAME = "_road_name";
+	public static final String COLUMN_TABLE_CHARGING_POINT_EFFECTIVE_DATE = "_effective_date";
+	public static final String COLUMN_TABLE_CHARGING_POINT_RATE_TEMPLATE_ID = "_rate_tamplate_id";
+
 	private static final String DATABASE_NAME = "commments.db";
 	private static final int DATABASE_VERSION = 1;
 
@@ -42,6 +50,12 @@ public class LTASQLiteHelper extends SQLiteOpenHelper {
 			+ COLUMN_TABLE_CHARGING_RECORD_NEXT_VALUE + " integer, " + COLUMN_TABLE_CHARGING_RECORD_RATE_TEMPLATE_ID
 			+ " text);";
 
+	private static final String DATABASE_CREATE_CHARGING_POINT = "create table " + TABLE_CHARGING_POINT + "("
+			+ COLUMN_TABLE_CHARGING_POINT_ID + " text, " + COLUMN_TABLE_CHARGING_POINT_LATITUDE + " real, "
+			+ COLUMN_TABLE_CHARGING_POINT_LONGITUDE + " real, " + COLUMN_TABLE_CHARGING_POINT_ROAD_NAME + " text, "
+			+ COLUMN_TABLE_CHARGING_POINT_RATE_TEMPLATE_ID + " text, " + COLUMN_TABLE_CHARGING_POINT_EFFECTIVE_DATE
+			+ " integer);";
+
 	public LTASQLiteHelper(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
 	}
@@ -50,6 +64,7 @@ public class LTASQLiteHelper extends SQLiteOpenHelper {
 	public void onCreate(SQLiteDatabase database) {
 		database.execSQL(DATABASE_CREATE_RATE_TEMPLATE);
 		database.execSQL(DATABASE_CREATE_CHARGING_RECORD);
+		database.execSQL(DATABASE_CREATE_CHARGING_POINT);
 	}
 
 	@Override

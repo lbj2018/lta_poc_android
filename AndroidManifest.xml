@@ -54,7 +54,8 @@
         </activity>
         <activity
             android:name=".ChargingPointActivity"
-            android:label="@string/title_activity_charging_point" >
+            android:label="@string/title_activity_charging_point"
+            android:screenOrientation="landscape" >
         </activity>
 
         <receiver
