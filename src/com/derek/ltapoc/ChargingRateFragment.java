@@ -11,6 +11,7 @@ import android.widget.CompoundButton;
 import com.derek.ltapoc.model.ChargingRate;
 import com.derek.ltapoc.model.ChargingRecord;
 import com.derek.ltapoc.model.LTADataStore;
+import com.derek.ltapoc.model.RateTemplate;
 import com.derek.ltapoc.view.HistogramView;
 
 public class ChargingRateFragment extends Fragment {
@@ -19,6 +20,7 @@ public class ChargingRateFragment extends Fragment {
 	private CheckBox mViewPreviousChargeRateCheckBox;
 
 	private boolean mIsWeekday;
+	private String mRateTemplateId;
 	private ChargingRate mChargingRate;
 
 	public ChargingRateFragment() {
@@ -46,6 +48,14 @@ public class ChargingRateFragment extends Fragment {
 			@Override
 			public void onCheckedChanged(CompoundButton arg0, boolean isChecked) {
 				mChargingRate.setApplyShoulderingRate(isChecked);
+			}
+		});
+
+		mViewPreviousChargeRateCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				updatePreviousChargeRate();
 			}
 		});
 
@@ -140,6 +150,43 @@ public class ChargingRateFragment extends Fragment {
 		mHistogramView.setHeightValues(this.getHeightValues());
 	}
 
+	private void updatePreviousChargeRate() {
+		if (mViewPreviousChargeRateCheckBox.isChecked()) {
+			RateTemplate previousTemplate = LTADataStore.get().getPreviousRateTemplate(mRateTemplateId);
+
+			if (previousTemplate != null) {
+				ChargingRecord[] previousTemplateRecords;
+				if (mIsWeekday) {
+					previousTemplateRecords = previousTemplate.getChargingRate().getWeekdayChargingRecords();
+				} else {
+					previousTemplateRecords = previousTemplate.getChargingRate().getSaturdayChargingRecords();
+				}
+
+				float[] previousTemplateHeightValues = new float[LTADataStore.HORIZONTAL_COUNT - 1];
+				String[] previousTampletHeightValueTexts = new String[LTADataStore.HORIZONTAL_COUNT - 1];
+
+				for (int i = 0; i < previousTemplateRecords.length; i++) {
+
+					if (previousTemplateRecords != null) {
+						ChargingRecord prevTemplateRecord = previousTemplateRecords[i];
+						previousTemplateHeightValues[i] = prevTemplateRecord.getValue()
+								/ (float) LTADataStore.VERTICAL_COUNT;
+						previousTampletHeightValueTexts[i] = LTADataStore.get().getPriceString(
+								prevTemplateRecord.getValue());
+					}
+				}
+
+				mHistogramView.setPreviousRateHeightValues(previousTemplateHeightValues);
+				mHistogramView.setPreviousRateHeightValueTexts(previousTampletHeightValueTexts);
+				mHistogramView.invalidate();
+			}
+		} else {
+			mHistogramView.setPreviousRateHeightValues(null);
+			mHistogramView.setPreviousRateHeightValueTexts(null);
+			mHistogramView.invalidate();
+		}
+	}
+
 	private int[] getHeightValues() {
 		ChargingRecord[] chargingPriceValues = null;
 		if (mIsWeekday) {
@@ -165,5 +212,10 @@ public class ChargingRateFragment extends Fragment {
 		this.savePriceValues();
 		this.mIsWeekday = isWeekday;
 		this.updateUI();
+		this.updatePreviousChargeRate();
+	}
+
+	public void setRateTemplateId(String rateTemplateId) {
+		mRateTemplateId = rateTemplateId;
 	}
 }

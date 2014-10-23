@@ -42,6 +42,7 @@ public class RateTemplateActivity extends Activity implements SegmentedControlFr
 
 		this.mChargingSchemeFragment.setChargingScheme(mRateTemplate.getChargingScheme());
 		this.mChargingRateFragment.setChargingRate(mChargingRate);
+		this.mChargingRateFragment.setRateTemplateId(templateId);
 		this.mReviewChangesFragment.setChargingRate(mChargingRate);
 		this.mReviewChangesFragment.setRateTemplateId(templateId);
 

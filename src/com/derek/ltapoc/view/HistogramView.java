@@ -32,51 +32,17 @@ public class HistogramView extends View {
 
 	private Paint mBitmapPaint;
 	private Paint mHistogramPaint;
+	private Paint mPreviousRateHistogramPaint;
 	private Paint mHistogramValueTextPaint;
+	private Paint mPreviousRateHistogramValueTextPaint;
 	private PointF mStartPoint;
 	private PointF mHorizontalMoveStart;
 
 	private boolean mCanDraw = true;
 	private int[] mHeightValues;
 
-	public int[] getHeightValues() {
-		return mHeightValues;
-	}
-
-	public void setHeightValues(int[] heightValues) {
-		mHeightValues = heightValues;
-
-		if (mHistogramAreas.size() > 0) {
-			for (int i = 0; i < mHistogramAreas.size(); i++) {
-				HistogramArea area = mHistogramAreas.get(i);
-				area.setHeightValue(mHeightValues[i]);
-			}
-		}
-
-		invalidate();
-	}
-
-	public boolean isCanDraw() {
-		return mCanDraw;
-	}
-
-	public void setCanDraw(boolean canDraw) {
-		mCanDraw = canDraw;
-	}
-
-	public void setHorizontalTexts(String[] horizontalTexts) {
-		if (horizontalTexts != null && horizontalTexts.length > 0) {
-			mHorizontalTexts = horizontalTexts;
-			mHorizontalCount = horizontalTexts.length - 1;
-		}
-	}
-
-	public void setVerticalTexts(String[] verticalTexts) {
-		if (verticalTexts != null) {
-			mVerticalTexts = verticalTexts;
-			mVerticalCount = verticalTexts.length;
-		}
-	}
+	private float[] mPreviousRateHeightValues;
+	private String[] mPreviousRateHeightValueTexts;
 
 	public HistogramView(Context context, AttributeSet attrs) {
 		super(context, attrs);
@@ -89,11 +55,21 @@ public class HistogramView extends View {
 		mHistogramPaint.setColor(HistogramArea.HISTOGRAM_COLOR);
 		mHistogramPaint.setStyle(Paint.Style.FILL);
 
+		mPreviousRateHistogramPaint = new Paint();
+		mPreviousRateHistogramPaint.setColor(0x9F0584A6);
+		mPreviousRateHistogramPaint.setStyle(Paint.Style.FILL);
+
 		mHistogramValueTextPaint = new Paint();
 		mHistogramValueTextPaint.setAntiAlias(true);
 		mHistogramValueTextPaint.setStyle(Paint.Style.FILL);
 		mHistogramValueTextPaint.setColor(Color.DKGRAY);
 		mHistogramValueTextPaint.setTextSize(25);
+
+		mPreviousRateHistogramValueTextPaint = new Paint();
+		mPreviousRateHistogramValueTextPaint.setAntiAlias(true);
+		mPreviousRateHistogramValueTextPaint.setStyle(Paint.Style.FILL);
+		mPreviousRateHistogramValueTextPaint.setColor(Color.WHITE);
+		mPreviousRateHistogramValueTextPaint.setTextSize(25);
 	}
 
 	@Override
@@ -102,6 +78,7 @@ public class HistogramView extends View {
 
 		canvas.drawBitmap(mLinesArea.getBitmap(), mLinesArea.getRect().left, mLinesArea.getRect().top, mBitmapPaint);
 
+		float textWidth = 0.0f;
 		for (int i = 0; i < mHistogramAreas.size(); i++) {
 			HistogramArea area = mHistogramAreas.get(i);
 			int heightValue = mHeightValues[i];
@@ -111,10 +88,37 @@ public class HistogramView extends View {
 			// draw height value text
 			if (heightValue > 0) {
 				String text = mVerticalTexts[heightValue - 1];
-				float textWidth = mHistogramValueTextPaint.measureText(text, 0, text.length());
+				textWidth = mHistogramValueTextPaint.measureText(text, 0, text.length());
 				int linesAreaHeight = area.getRect().height() / mVerticalCount;
 				canvas.drawText(text, area.getRect().left + (area.getRect().width() - textWidth) / 2, area.getRect()
 						.height() - heightValue * linesAreaHeight + 25 + 5, mHistogramValueTextPaint);
+			}
+
+			// Draw Previous
+			if (mPreviousRateHeightValues != null && mPreviousRateHeightValueTexts != null
+					&& mPreviousRateHeightValues.length == mHistogramAreas.size()
+					&& mPreviousRateHeightValueTexts.length == mHistogramAreas.size()) {
+				int areaHeight = area.getRect().height();
+				int areaWidth = area.getRect().width();
+
+				// Draw Previous Rate Template Height Value Rectangle
+				float previousTemplateHeightValue = mPreviousRateHeightValues[i];
+				if (previousTemplateHeightValue != 0) {
+					canvas.drawRect(area.getRect().left + LinesArea.LINE_WIDTH, areaHeight
+							- previousTemplateHeightValue * areaHeight, area.getRect().left + areaWidth
+							- LinesArea.LINE_WIDTH, areaHeight - previousTemplateHeightValue * areaHeight + 30,
+							mPreviousRateHistogramPaint);
+				}
+
+				// Draw Previous Rate Template Height Value Text
+				String previousTemplateHeightValueText = mPreviousRateHeightValueTexts[i];
+				if (previousTemplateHeightValue != 0) {
+					textWidth = mPreviousRateHistogramValueTextPaint.measureText(previousTemplateHeightValueText, 0,
+							previousTemplateHeightValueText.length());
+					canvas.drawText(previousTemplateHeightValueText, area.getRect().left + (areaWidth - textWidth) / 2,
+							areaHeight - previousTemplateHeightValue * areaHeight + 25,
+							mPreviousRateHistogramValueTextPaint);
+				}
 			}
 		}
 
@@ -268,5 +272,52 @@ public class HistogramView extends View {
 		Rect verticalTextAreaRect = new Rect(0, 0, Y_AXIS_VALUE_DISTANCE, h);
 		mVerticalTextArea = new VerticalTextArea(verticalTextAreaRect, mVerticalTexts);
 		mVerticalTextArea.drawTexts();
+	}
+
+	public void setPreviousRateHeightValues(float[] previousRateHeightValues) {
+		mPreviousRateHeightValues = previousRateHeightValues;
+	}
+
+	public void setPreviousRateHeightValueTexts(String[] previousRateHeightValueTexts) {
+		mPreviousRateHeightValueTexts = previousRateHeightValueTexts;
+	}
+
+	public int[] getHeightValues() {
+		return mHeightValues;
+	}
+
+	public void setHeightValues(int[] heightValues) {
+		mHeightValues = heightValues;
+
+		if (mHistogramAreas.size() > 0) {
+			for (int i = 0; i < mHistogramAreas.size(); i++) {
+				HistogramArea area = mHistogramAreas.get(i);
+				area.setHeightValue(mHeightValues[i]);
+			}
+		}
+
+		invalidate();
+	}
+
+	public boolean isCanDraw() {
+		return mCanDraw;
+	}
+
+	public void setCanDraw(boolean canDraw) {
+		mCanDraw = canDraw;
+	}
+
+	public void setHorizontalTexts(String[] horizontalTexts) {
+		if (horizontalTexts != null && horizontalTexts.length > 0) {
+			mHorizontalTexts = horizontalTexts;
+			mHorizontalCount = horizontalTexts.length - 1;
+		}
+	}
+
+	public void setVerticalTexts(String[] verticalTexts) {
+		if (verticalTexts != null) {
+			mVerticalTexts = verticalTexts;
+			mVerticalCount = verticalTexts.length;
+		}
 	}
 }
