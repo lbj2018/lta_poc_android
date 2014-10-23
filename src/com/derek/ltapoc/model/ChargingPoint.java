@@ -9,6 +9,8 @@ public class ChargingPoint {
 	private String mRoadName;
 	private String rateTemplateId;
 	private Date mEffectiveDate;
+	private String mNotificationMessage;
+	private String mRemarks;
 
 	public ChargingPoint() {
 	}
@@ -59,5 +61,21 @@ public class ChargingPoint {
 
 	public void setRateTemplateId(String rateTemplateId) {
 		this.rateTemplateId = rateTemplateId;
+	}
+
+	public String getNotificationMessage() {
+		return mNotificationMessage;
+	}
+
+	public void setNotificationMessage(String notificationMessage) {
+		mNotificationMessage = notificationMessage;
+	}
+
+	public String getRemarks() {
+		return mRemarks;
+	}
+
+	public void setRemarks(String remarks) {
+		mRemarks = remarks;
 	}
 }

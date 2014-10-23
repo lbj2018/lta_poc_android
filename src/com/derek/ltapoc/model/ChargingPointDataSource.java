@@ -33,6 +33,8 @@ public class ChargingPointDataSource {
 		values.put(LTASQLiteHelper.COLUMN_TABLE_CHARGING_POINT_LONGITUDE, chargingPoint.getLongitude());
 		values.put(LTASQLiteHelper.COLUMN_TABLE_CHARGING_POINT_ROAD_NAME, chargingPoint.getRoadName());
 		values.put(LTASQLiteHelper.COLUMN_TABLE_CHARGING_POINT_RATE_TEMPLATE_ID, chargingPoint.getRateTemplateId());
+		values.put(LTASQLiteHelper.COLUMN_TABLE_CHARGING_POINT_MESSAGE, chargingPoint.getNotificationMessage());
+		values.put(LTASQLiteHelper.COLUMN_TABLE_CHARGING_POINT_REMARKS, chargingPoint.getRemarks());
 		values.put(LTASQLiteHelper.COLUMN_TABLE_CHARGING_POINT_EFFECTIVE_DATE, chargingPoint.getEffectiveDate()
 				.getTime());
 
@@ -49,7 +51,9 @@ public class ChargingPointDataSource {
 				LTASQLiteHelper.COLUMN_TABLE_CHARGING_POINT_LONGITUDE,
 				LTASQLiteHelper.COLUMN_TABLE_CHARGING_POINT_ROAD_NAME,
 				LTASQLiteHelper.COLUMN_TABLE_CHARGING_POINT_RATE_TEMPLATE_ID,
-				LTASQLiteHelper.COLUMN_TABLE_CHARGING_POINT_EFFECTIVE_DATE };
+				LTASQLiteHelper.COLUMN_TABLE_CHARGING_POINT_EFFECTIVE_DATE,
+				LTASQLiteHelper.COLUMN_TABLE_CHARGING_POINT_MESSAGE,
+				LTASQLiteHelper.COLUMN_TABLE_CHARGING_POINT_REMARKS };
 
 		Cursor cursor = database.query(LTASQLiteHelper.TABLE_CHARGING_POINT, allColumns, null, null, null, null, null);
 
@@ -64,6 +68,8 @@ public class ChargingPointDataSource {
 			point.setRoadName(cursor.getString(3));
 			point.setRateTemplateId(cursor.getString(4));
 			point.setEffectiveDate(new Date(cursor.getLong(5)));
+			point.setNotificationMessage(cursor.getString(6));
+			point.setRemarks(cursor.getString(7));
 
 			chargingPoints.add(point);
 
@@ -84,7 +90,8 @@ public class ChargingPointDataSource {
 		values.put(LTASQLiteHelper.COLUMN_TABLE_CHARGING_POINT_ROAD_NAME, point.getRoadName());
 		values.put(LTASQLiteHelper.COLUMN_TABLE_CHARGING_POINT_RATE_TEMPLATE_ID, point.getRateTemplateId());
 		values.put(LTASQLiteHelper.COLUMN_TABLE_CHARGING_POINT_EFFECTIVE_DATE, point.getEffectiveDate().getTime());
-		values.put(LTASQLiteHelper.COLUMN_TABLE_CHARGING_POINT_ID, point.getChargingPointId());
+		values.put(LTASQLiteHelper.COLUMN_TABLE_CHARGING_POINT_MESSAGE, point.getNotificationMessage());
+		values.put(LTASQLiteHelper.COLUMN_TABLE_CHARGING_POINT_REMARKS, point.getRemarks());
 
 		long rowId = database.update(LTASQLiteHelper.TABLE_CHARGING_POINT, values,
 				LTASQLiteHelper.COLUMN_TABLE_CHARGING_POINT_ID + " = " + "'" + point.getChargingPointId() + "'", null);

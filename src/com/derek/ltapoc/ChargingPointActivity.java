@@ -3,10 +3,6 @@ package com.derek.ltapoc;
 import android.app.Activity;
 import android.os.Bundle;
 
-import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.CameraPosition.Builder;
-import com.google.android.gms.maps.model.LatLng;
-
 public class ChargingPointActivity extends Activity {
 
 	@Override
@@ -15,11 +11,6 @@ public class ChargingPointActivity extends Activity {
 		setContentView(R.layout.activity_charging_point);
 
 		if (savedInstanceState == null) {
-			Builder builder = new CameraPosition.Builder();
-			builder.target(new LatLng(1, 103));
-			builder.zoom(13);
-			CameraPosition cp = builder.build();
-
 			ChargingPointMapFragment mapFragment = new ChargingPointMapFragment();
 
 			getFragmentManager().beginTransaction()

@@ -35,7 +35,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 public class ChargingPointMapFragment extends MapFragment implements EditChargingPointDialogFragmentCallbacks {
-
+	private static final double CHARGING_POINT_RADIUS = 500;
 	private GoogleMap mGoogleMap;
 	private Location mLastLocation;
 	private boolean mIsFirstGetLocation = true;
@@ -181,7 +181,7 @@ public class ChargingPointMapFragment extends MapFragment implements EditChargin
 	private void circleLacation(LatLng latlng) {
 		CircleOptions options = new CircleOptions();
 		options.center(latlng);
-		options.radius(500);
+		options.radius(CHARGING_POINT_RADIUS);
 		options.strokeColor(0xffff0000);
 		options.strokeWidth(3);
 		options.visible(true);

@@ -31,6 +31,8 @@ public class LTASQLiteHelper extends SQLiteOpenHelper {
 	public static final String COLUMN_TABLE_CHARGING_POINT_LONGITUDE = "_longitude";
 	public static final String COLUMN_TABLE_CHARGING_POINT_ROAD_NAME = "_road_name";
 	public static final String COLUMN_TABLE_CHARGING_POINT_EFFECTIVE_DATE = "_effective_date";
+	public static final String COLUMN_TABLE_CHARGING_POINT_MESSAGE = "_message";
+	public static final String COLUMN_TABLE_CHARGING_POINT_REMARKS = "_remarks";
 	public static final String COLUMN_TABLE_CHARGING_POINT_RATE_TEMPLATE_ID = "_rate_tamplate_id";
 
 	private static final String DATABASE_NAME = "commments.db";
@@ -53,6 +55,7 @@ public class LTASQLiteHelper extends SQLiteOpenHelper {
 	private static final String DATABASE_CREATE_CHARGING_POINT = "create table " + TABLE_CHARGING_POINT + "("
 			+ COLUMN_TABLE_CHARGING_POINT_ID + " text, " + COLUMN_TABLE_CHARGING_POINT_LATITUDE + " real, "
 			+ COLUMN_TABLE_CHARGING_POINT_LONGITUDE + " real, " + COLUMN_TABLE_CHARGING_POINT_ROAD_NAME + " text, "
+			+ COLUMN_TABLE_CHARGING_POINT_MESSAGE + " text, " + COLUMN_TABLE_CHARGING_POINT_REMARKS + " text, "
 			+ COLUMN_TABLE_CHARGING_POINT_RATE_TEMPLATE_ID + " text, " + COLUMN_TABLE_CHARGING_POINT_EFFECTIVE_DATE
 			+ " integer);";
 
