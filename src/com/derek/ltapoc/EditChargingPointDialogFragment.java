@@ -2,6 +2,7 @@ package com.derek.ltapoc;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -18,19 +19,25 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.derek.ltapoc.DatePickerDialogFragment.DatePickerDialogFragmentCallbacks;
 import com.derek.ltapoc.model.ChargingPoint;
+import com.derek.ltapoc.model.DateFormatUtil;
 import com.derek.ltapoc.model.LTADataStore;
 import com.derek.ltapoc.model.RateTemplate;
 
-public class EditChargingPointDialogFragment extends DialogFragment {
+public class EditChargingPointDialogFragment extends DialogFragment implements DatePickerDialogFragmentCallbacks {
 	private EditText mRoadNameEditText;
 	private TextView mLatitudeTextView;
 	private TextView mLongitudeTextView;
+	private TextView mEffectiveDateTextView;
+	private EditText mMessageEditText;
+	private EditText mRemarksEditText;
 	private Spinner mRateTemplateSpinner;
 	private ChargingPoint mChargingPoint;
 	private ArrayList<RateTemplate> mRateTemplates;
@@ -40,6 +47,8 @@ public class EditChargingPointDialogFragment extends DialogFragment {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+		if (mChargingPoint.getEffectiveDate() == null)
+			mChargingPoint.setEffectiveDate(new Date());
 		mRateTemplates = LTADataStore.get().getRateTemplates();
 	}
 
@@ -52,7 +61,25 @@ public class EditChargingPointDialogFragment extends DialogFragment {
 		mRoadNameEditText = (EditText) rootView.findViewById(R.id.edit_text_road_name);
 		mLatitudeTextView = (TextView) rootView.findViewById(R.id.text_view_latitude);
 		mLongitudeTextView = (TextView) rootView.findViewById(R.id.text_view_longitude);
+		mEffectiveDateTextView = (TextView) rootView.findViewById(R.id.text_view_effective_date);
 		mRateTemplateSpinner = (Spinner) rootView.findViewById(R.id.spinner_rate_template);
+		mMessageEditText = (EditText) rootView.findViewById(R.id.edit_text_message);
+		mRemarksEditText = (EditText) rootView.findViewById(R.id.edit_text_remarks);
+
+		Date date = (mChargingPoint.getEffectiveDate() == null) ? new Date() : mChargingPoint.getEffectiveDate();
+		String dateString = DateFormatUtil.getDateStringFromDate(date, "dd/MM/yyyy");
+		mEffectiveDateTextView.setText(dateString);
+
+		Button pickEffectiveDateButton = (Button) rootView.findViewById(R.id.button_effective_date_picker);
+		pickEffectiveDateButton.setOnClickListener(new View.OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				DatePickerDialogFragment dialogFragment = new DatePickerDialogFragment();
+				dialogFragment.setCallbacks(EditChargingPointDialogFragment.this);
+				dialogFragment.show(getFragmentManager(), "DatePickerDialogFragment");
+			}
+		});
 
 		if (mChargingPoint.getRoadName() != null) {
 			mRoadNameEditText.setText(mChargingPoint.getRoadName());
@@ -77,15 +104,20 @@ public class EditChargingPointDialogFragment extends DialogFragment {
 				String roadName = mRoadNameEditText.getText().toString();
 
 				if (roadName != null && roadName.length() != 0) {
-					int position = mRateTemplateSpinner.getSelectedItemPosition();
-					RateTemplate rateTemplate = mRateTemplates.get(position);
+					if (mRateTemplates != null && mRateTemplates.size() != 0) {
+						int position = mRateTemplateSpinner.getSelectedItemPosition();
+						RateTemplate rateTemplate = mRateTemplates.get(position);
 
-					if (rateTemplate != null)
-						mChargingPoint.setRateTemplateId(rateTemplate.getRateTemplateId());
+						if (rateTemplate != null)
+							mChargingPoint.setRateTemplateId(rateTemplate.getRateTemplateId());
 
-					mChargingPoint.setRoadName(roadName);
+						mChargingPoint.setRoadName(roadName);
 
-					mCallbacks.onDidSaveChargingPoint(mChargingPoint);
+						mCallbacks.onDidSaveChargingPoint(mChargingPoint);
+					} else {
+						Toast.makeText(getActivity(), "Please create a rate template firstly.", Toast.LENGTH_SHORT)
+								.show();
+					}
 				} else {
 					Toast.makeText(getActivity(), "Please input road name.", Toast.LENGTH_SHORT).show();
 				}
@@ -171,5 +203,13 @@ public class EditChargingPointDialogFragment extends DialogFragment {
 
 	public void setChargingPoint(ChargingPoint chargingPoint) {
 		mChargingPoint = chargingPoint;
+	}
+
+	@Override
+	public void onPickDate(Date date) {
+		mChargingPoint.setEffectiveDate(date);
+
+		String dateString = DateFormatUtil.getDateStringFromDate(date, "dd/MM/yyyy");
+		mEffectiveDateTextView.setText(dateString);
 	}
 }
