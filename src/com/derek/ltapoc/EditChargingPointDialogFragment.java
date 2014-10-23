@@ -17,7 +17,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
@@ -71,21 +70,6 @@ public class EditChargingPointDialogFragment extends DialogFragment {
 			mRateTemplateSpinner.setSelection(position);
 		}
 
-		mRateTemplateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-
-			@Override
-			public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-				RateTemplate rateTemplate = mRateTemplates.get(position);
-
-				mChargingPoint.setRateTemplateId(rateTemplate.getRateTemplateId());
-			}
-
-			@Override
-			public void onNothingSelected(AdapterView<?> parent) {
-
-			}
-		});
-
 		builder.setView(rootView);
 		builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 			@Override
@@ -93,6 +77,12 @@ public class EditChargingPointDialogFragment extends DialogFragment {
 				String roadName = mRoadNameEditText.getText().toString();
 
 				if (roadName != null && roadName.length() != 0) {
+					int position = mRateTemplateSpinner.getSelectedItemPosition();
+					RateTemplate rateTemplate = mRateTemplates.get(position);
+
+					if (rateTemplate != null)
+						mChargingPoint.setRateTemplateId(rateTemplate.getRateTemplateId());
+
 					mChargingPoint.setRoadName(roadName);
 
 					mCallbacks.onDidSaveChargingPoint(mChargingPoint);

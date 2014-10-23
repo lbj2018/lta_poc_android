@@ -57,9 +57,14 @@
             android:label="@string/title_activity_charging_point"
             android:screenOrientation="landscape" >
         </activity>
+        <activity
+            android:name=".ChargingPointListActivity"
+            android:label="@string/title_activity_charging_point_list"
+            android:screenOrientation="landscape" >
+        </activity>
 
         <receiver
-            android:name="com.derek.ltapoc.location.LocationReceiver"
+            android:name=".location.LocationReceiver"
             android:exported="false" >
             <intent-filter>
                 <action android:name="com.derek.lta.ACTION_LOCATION" />

@@ -29,6 +29,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnInfoWindowClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMapLongClickListener;
 import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -38,8 +39,6 @@ public class ChargingPointMapFragment extends MapFragment implements EditChargin
 	private GoogleMap mGoogleMap;
 	private Location mLastLocation;
 	private boolean mIsFirstGetLocation = true;
-	// private Marker mCurrentLocationMarker;
-	// private ArrayList<Marker> mChargingPointMarkers;
 	private ArrayList<ChargingPoint> mChargingPoints;
 	private HashMap<String, Marker> mChargingPointMarkers;
 	private ProgressDialog mProgressDialog;
@@ -94,6 +93,8 @@ public class ChargingPointMapFragment extends MapFragment implements EditChargin
 				Marker chargingPointMarker = mGoogleMap.addMarker(new MarkerOptions().position(latlng).title(
 						aPoint.getRoadName()));
 				mChargingPointMarkers.put(aPoint.getChargingPointId(), chargingPointMarker);
+
+				circleLacation(latlng);
 			}
 		}
 
@@ -115,36 +116,6 @@ public class ChargingPointMapFragment extends MapFragment implements EditChargin
 				dialogFragment.show(getActivity().getFragmentManager(), "EditChargingPointDialogFragment");
 			}
 		});
-
-		// mGoogleMap.setOnMarkerClickListener(new OnMarkerClickListener() {
-		//
-		// @Override
-		// public boolean onMarkerClick(Marker marker) {
-		// String chargingPointId = marker.getTitle();
-		//
-		// for (Map.Entry<String, Marker> entry :
-		// mChargingPointMarkers.entrySet()) {
-		// Marker aMarker = entry.getValue();
-		// if (aMarker.equals(marker)) {
-		// chargingPointId = entry.getKey();
-		// break;
-		// }
-		// }
-		//
-		// ChargingPoint chargingPoint =
-		// LTADataStore.get().getChargingPoint(chargingPointId);
-		//
-		// EditChargingPointDialogFragment dialogFragment = new
-		// EditChargingPointDialogFragment();
-		// dialogFragment.setCallbacks(ChargingPointMapFragment.this);
-		// dialogFragment.setChargingPoint(chargingPoint);
-		// dialogFragment.show(getActivity().getFragmentManager(),
-		// "EditChargingPointDialogFragment");
-		//
-		// return true;
-		//
-		// }
-		// });
 
 		mGoogleMap.setOnInfoWindowClickListener(new OnInfoWindowClickListener() {
 
@@ -207,6 +178,16 @@ public class ChargingPointMapFragment extends MapFragment implements EditChargin
 		}
 	}
 
+	private void circleLacation(LatLng latlng) {
+		CircleOptions options = new CircleOptions();
+		options.center(latlng);
+		options.radius(500);
+		options.strokeColor(0xffff0000);
+		options.strokeWidth(3);
+		options.visible(true);
+		mGoogleMap.addCircle(options);
+	}
+
 	@Override
 	public void onDidSaveChargingPoint(ChargingPoint point) {
 		// save into database
@@ -223,9 +204,10 @@ public class ChargingPointMapFragment extends MapFragment implements EditChargin
 					point.getRoadName()));
 
 			mChargingPointMarkers.put(point.getChargingPointId(), chargingPointMarker);
-			// mChargingPointMarkers.add(chargingPointMarker);
 
 			chargingPointMarker.showInfoWindow();
+
+			circleLacation(latlng);
 		} else {
 			ChargingPointDataSource dataSource = new ChargingPointDataSource(getActivity());
 			dataSource.open();
