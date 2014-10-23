@@ -59,12 +59,12 @@ public class EditChargingPointDialogFragment extends DialogFragment implements D
 
 		View rootView = inflater.inflate(R.layout.dialog_edit_charging_point, null);
 		mRoadNameEditText = (EditText) rootView.findViewById(R.id.edit_text_road_name);
+		mMessageEditText = (EditText) rootView.findViewById(R.id.edit_text_message);
+		mRemarksEditText = (EditText) rootView.findViewById(R.id.edit_text_remarks);
 		mLatitudeTextView = (TextView) rootView.findViewById(R.id.text_view_latitude);
 		mLongitudeTextView = (TextView) rootView.findViewById(R.id.text_view_longitude);
 		mEffectiveDateTextView = (TextView) rootView.findViewById(R.id.text_view_effective_date);
 		mRateTemplateSpinner = (Spinner) rootView.findViewById(R.id.spinner_rate_template);
-		mMessageEditText = (EditText) rootView.findViewById(R.id.edit_text_message);
-		mRemarksEditText = (EditText) rootView.findViewById(R.id.edit_text_remarks);
 
 		Date date = (mChargingPoint.getEffectiveDate() == null) ? new Date() : mChargingPoint.getEffectiveDate();
 		String dateString = DateFormatUtil.getDateStringFromDate(date, "dd/MM/yyyy");
