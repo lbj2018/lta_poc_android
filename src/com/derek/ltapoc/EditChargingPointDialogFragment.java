@@ -1,22 +1,14 @@
 package com.derek.ltapoc;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-import java.util.Locale;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.DialogInterface;
-import android.location.Address;
-import android.location.Geocoder;
-import android.location.Location;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -153,56 +145,6 @@ public class EditChargingPointDialogFragment extends DialogFragment implements D
 	private class RateTemplateAdapter extends ArrayAdapter<RateTemplate> {
 		public RateTemplateAdapter(ArrayList<RateTemplate> items) {
 			super(getActivity(), android.R.layout.simple_spinner_item, items);
-		}
-	}
-
-	private class GetAddressTask extends AsyncTask<Location, Void, String> {
-
-		@Override
-		protected String doInBackground(Location... params) {
-			Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
-			// Get the current location from the input parameter list
-			Location loc = params[0];
-			// Create a list to contain the result address
-			List<Address> addresses = null;
-			try {
-				addresses = geocoder.getFromLocation(loc.getLatitude(), loc.getLongitude(), 1);
-			} catch (IOException e1) {
-				Log.e("GetAddressTask", "IO Exception in getFromLocation()");
-				e1.printStackTrace();
-				return ("IO Exception trying to get address");
-			} catch (IllegalArgumentException e2) {
-				// Error message to post in the log
-				String errorString = "Illegal arguments " + Double.toString(loc.getLatitude()) + " , "
-						+ Double.toString(loc.getLongitude()) + " passed to address service";
-				Log.e("GetAddressTask", errorString);
-				e2.printStackTrace();
-				return errorString;
-			}
-			if (addresses != null && addresses.size() > 0) {
-				// Get the first address
-				Address address = addresses.get(0);
-				/*
-				 * Format the first line of address (if available), city, and
-				 * country name.
-				 */
-				String addressText = String.format("%s, %s, %s",
-				// If there's a street address, add it
-						address.getMaxAddressLineIndex() > 0 ? address.getAddressLine(0) : "",
-						// Locality is usually a city
-						address.getLocality(),
-						// The country of the address
-						address.getCountryName());
-				// Return the text
-				return addressText;
-			} else {
-				return "No address found";
-			}
-		}
-
-		@Override
-		protected void onPostExecute(String result) {
-			super.onPostExecute(result);
 		}
 	}
 

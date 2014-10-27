@@ -1,8 +1,11 @@
 package com.derek.ltapoc;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -10,8 +13,12 @@ import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.IntentFilter;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -102,18 +109,8 @@ public class ChargingPointMapFragment extends MapFragment implements EditChargin
 
 			@Override
 			public void onMapLongClick(LatLng latlng) {
-				ChargingPoint chargingPoint = new ChargingPoint();
-				chargingPoint.setChargingPointId(UUID.randomUUID().toString());
-				chargingPoint.setLatitude(latlng.latitude);
-				chargingPoint.setLongitude(latlng.longitude);
-				chargingPoint.setRoadName("");
-				chargingPoint.setRateTemplateId("");
-				chargingPoint.setEffectiveDate(new Date());
 
-				EditChargingPointDialogFragment dialogFragment = new EditChargingPointDialogFragment();
-				dialogFragment.setCallbacks(ChargingPointMapFragment.this);
-				dialogFragment.setChargingPoint(chargingPoint);
-				dialogFragment.show(getActivity().getFragmentManager(), "EditChargingPointDialogFragment");
+				new GetAddressTask().execute(latlng);
 			}
 		});
 
@@ -188,6 +185,87 @@ public class ChargingPointMapFragment extends MapFragment implements EditChargin
 		mGoogleMap.addCircle(options);
 	}
 
+	private class GetAddressTask extends AsyncTask<LatLng, Void, String> {
+		private ProgressDialog mProgressDialog;
+		private double mLatitude;
+		private double mLongitude;
+
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+
+			mProgressDialog = ProgressDialog.show(getActivity(), "", "Loading your address by your coordinate...");
+		}
+
+		@Override
+		protected String doInBackground(LatLng... params) {
+			Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
+
+			LatLng latlng = params[0];
+
+			mLatitude = latlng.latitude;
+			mLongitude = latlng.longitude;
+
+			// Create a list to contain the result address
+			List<Address> addresses = null;
+			try {
+				addresses = geocoder.getFromLocation(mLatitude, mLongitude, 1);
+			} catch (IOException e1) {
+				Log.e("GetAddressTask", "IO Exception in getFromLocation()");
+				e1.printStackTrace();
+				return "";
+			} catch (IllegalArgumentException e2) {
+				// Error message to post in the log
+				String errorString = "Illegal arguments " + Double.toString(mLatitude) + " , "
+						+ Double.toString(mLongitude) + " passed to address service";
+				Log.e("GetAddressTask", errorString);
+				e2.printStackTrace();
+				return "";
+			}
+			if (addresses != null && addresses.size() > 0) {
+				// Get the first address
+				Address address = addresses.get(0);
+				/*
+				 * Format the first line of address (if available), city, and
+				 * country name.
+				 */
+				String addressText = String.format("%s, %s, %s",
+				// If there's a street address, add it
+						address.getMaxAddressLineIndex() > 0 ? address.getAddressLine(0) : "",
+						// Locality is usually a city
+						address.getLocality(),
+						// The country of the address
+						address.getCountryName());
+				// Return the text
+
+				String thoroughfare = address.getThoroughfare();
+
+				return thoroughfare;
+			} else {
+				return "";
+			}
+		}
+
+		@Override
+		protected void onPostExecute(String result) {
+			super.onPostExecute(result);
+			mProgressDialog.dismiss();
+
+			ChargingPoint chargingPoint = new ChargingPoint();
+			chargingPoint.setChargingPointId(UUID.randomUUID().toString());
+			chargingPoint.setLatitude(mLatitude);
+			chargingPoint.setLongitude(mLongitude);
+			chargingPoint.setRoadName(result);
+			chargingPoint.setRateTemplateId("");
+			chargingPoint.setEffectiveDate(new Date());
+
+			EditChargingPointDialogFragment dialogFragment = new EditChargingPointDialogFragment();
+			dialogFragment.setCallbacks(ChargingPointMapFragment.this);
+			dialogFragment.setChargingPoint(chargingPoint);
+			dialogFragment.show(getActivity().getFragmentManager(), "EditChargingPointDialogFragment");
+		}
+	}
+
 	@Override
 	public void onDidSaveChargingPoint(ChargingPoint point) {
 		// save into database
@@ -218,9 +296,5 @@ public class ChargingPointMapFragment extends MapFragment implements EditChargin
 
 	@Override
 	public void onDidCancelChargingPoint(ChargingPoint point) {
-		for (Map.Entry<String, Marker> entry : mChargingPointMarkers.entrySet()) {
-			Marker aMarker = entry.getValue();
-			aMarker.showInfoWindow();
-		}
 	}
 }
